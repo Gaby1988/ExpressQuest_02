@@ -9,7 +9,7 @@ const pool = mysql.createPool({
 
 async function getMovies(req, res) {
 	try {
-		const movies = await pool.query("SELECT * FROM movies");
+		const [movies] = await pool.query("SELECT * FROM movies");
 		if (movies) {
 			return res.status(200).json(movies);
 		} else {
@@ -39,7 +39,7 @@ async function getMoviesById(req, res) {
 
 const getUsers = async (req, res) => {
   try {
-    const users = await pool.query("SELECT * FROM users");
+    const [users] = await pool.query("SELECT * FROM users");
     if (users) {
       return res.status(200).json(users);
     } else {
