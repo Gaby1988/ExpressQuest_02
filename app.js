@@ -17,12 +17,16 @@ app.post("/api/movies", database.postMovie);
 
 app.put("/api/movies/:id", database.putMovie);
 
+app.delete("/api/movies/:id", database.deleteMovie);
+
 app.get("/api/users", database.getUsers);
 app.get("/api/users/:id", database.getUsersById);
 
 app.post("/api/users", database.postUser);
 
 app.put("/api/users/:id", database.putUser);
+
+app.delete("/api/users/:id", database.deleteUser);
 
 
 app.listen(port, (err) => {
