@@ -66,4 +66,38 @@ const getUsersById = async (req, res) => {
   }
 }
 
-module.exports = { getMovies, getMoviesById, getUsers, getUsersById };
+const postMovie = (req, res) => {
+  const { title, director, year, color, duration } = req.body;
+
+  pool.query(
+    "INSERT INTO movies (title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)",
+    [title, director, year, color, duration],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send("Error saving the movie");
+      } else {
+        res.location(`/api/movies/${result.insertId}`).sendStatus(201);
+      }
+    }
+  );
+};
+
+const postUser = (req, res) => {
+  const { firstname, lastname, email, city, language } = req.body;
+
+  pool.query(
+    "INSERT INTO users (firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
+    [firstname, lastname, email, city, language],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send("Try again 😂🤣");
+      } else {
+        res.location(`/api/users/${result.insertId}`).sendStatus(201);
+      }
+    }
+  );
+};
+
+module.exports = { getMovies, getMoviesById, getUsers, getUsersById, postMovie, postUser };
