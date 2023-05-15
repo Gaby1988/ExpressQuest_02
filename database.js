@@ -8,16 +8,39 @@ const pool = mysql.createPool({
 });
 
 async function getMovies(req, res) {
+	let initialSql = "SELECT * FROM movies";
+	let where = [];
 	try {
-		const [movies] = await pool.query("SELECT * FROM movies");
+		if (req.query.color != null) {
+			where.push({
+				column: "color",
+				value: req.query.color,
+				operator: "=",
+			});
+		}
+		if (req.query.max_duration != null) {
+			where.push({
+				column: "duration",
+				value: req.query.max_duration,
+				operator: "<=",
+			});
+		}
+		const [movies] = await pool.query(
+			where.reduce(
+				(sql, { column, operator }, index) =>
+					`${sql} ${index === 0 ? "where" : "and"} ${column} ${operator} ?`,
+				initialSql
+			),
+			where.map(({ value }) => value)
+		);
 		if (movies) {
 			return res.status(200).json(movies);
 		} else {
-			return res.status(404).json({ message: "No movies" });
+			return res.status(404).send("No movies");
 		}
 	} catch (err) {
-		console.log(err);
-		return res.status(500).json({ message: "Server Error" });
+		console.error(err);
+		return res.status(500).send("Server Error");
 	}
 }
 
@@ -38,8 +61,30 @@ async function getMoviesById(req, res) {
 }
 
 const getUsers = async (req, res) => {
+  let initialSql = "SELECT * FROM users";
+  let where = [];
 	try {
-		const [users] = await pool.query("SELECT * FROM users");
+    if (req.query.language != null) {
+      where.push({
+        column: "language",
+        value: req.query.language,
+        operator: "=",
+      });
+    }
+    if (req.query.city != null) {
+      where.push({
+        column: "city",
+        value: req.query.city,
+        operator: "=",
+      });
+    }
+		const [users] = await pool.query(where.reduce(
+      (sql, { column, operator }, index) => 
+      `${sql} ${index === 0 ? "where" : "and"} ${column} ${operator} ?`,
+      initialSql
+    ),
+    where.map(({ value }) => value)
+    );
 		if (users) {
 			return res.status(200).json(users);
 		} else {
