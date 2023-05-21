@@ -1,116 +1,114 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
-// import { useSelector } from "react-redux";
 
 function App() {
-	const [title, setTitle] = useState("");
-	const [director, setDirector] = useState("");
-	const [year, setYear] = useState("");
-	const [color, setColor] = useState("");
-	const [duration, setDuration] = useState("");
-	const [data, setData] = useState([]);
-	const getData = () => {
-		axios
-			.get("http://localhost:5000/api/movies")
-			.then((response) => {
-				setData(response.data);
-			})
-			.catch((error) => {
-				console.error(error);
-			});
-	};
+  const [data, setData] = useState([]);
+  const [editedData, setEditedData] = useState({});
+  const [savedData, setSavedData] = useState({});
 
-	useEffect(() => {
-		getData();
-	}, []);
-	console.info(data);
-	// const posts = useSelector((state) => state.postReducer)
+  const getData = () => {
+    axios
+      .get("http://localhost:5000/api/movies")
+      .then((response) => {
+        setData(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
 
-	const postData = (data) => {
-		axios
-			.post("http://localhost:5000/api/movies", data)
-			.then((response) => {
-				console.log("Données envoyées avec succès !");
-			})
-			.catch((error) => {
-				console.error("Erreur lors de l'envoi des données :", error);
-			});
-	};
+  useEffect(() => {
+    getData();
+  }, []);
 
-	const handleSubmit = (event) => {
-		event.preventDefault();
+  const updateData = (id, newData) => {
+    axios
+      .put(`http://localhost:5000/api/movies/${id}`, newData)
+      .then((response) => {
+        console.log("Données mises à jour avec succès !");
+        const updatedData = { ...savedData };
+        delete updatedData[id];
+        setSavedData(updatedData);
+      })
+      .catch((error) => {
+        console.error("Erreur lors de la mise à jour des données :", error);
+      });
+  };
 
-		// Créez un objet avec les données à envoyer
-		const data = {
-			title: title,
-			director: director,
-			year: year,
-			color: color,
-			duration: parseInt(duration),
-		};
+  const handleEdit = (id) => {
+    setEditedData((prevData) => ({
+      ...prevData,
+      [id]: true,
+    }));
+  };
 
-		// Appelez la fonction postData pour envoyer les données
-		postData(data);
-	};
-	const handleReset = () => {
-		setTimeout(() => {
-			setTitle("");
-			setDirector("");
-			setYear("");
-			setColor("");
-			setDuration("");
-		}, 1000);
-	};
+  const handleSave = (id) => {
+    const newData = editedData[id];
+    if (newData) {
+      updateData(id, newData);
+    }
+  };
 
-	return (
-		<div className="App">
-			{data.map((item) => (
-				<>
-					<p>{item.title}</p>
-					<p>{item.year}</p>
-					<p>{item.productor}</p>
-				</>
-			))}
-			<form id="myForm" onSubmit={handleSubmit}>
-				<input
-					type="text"
-					value={title}
-					placeholder="titre"
-					onChange={(e) => setTitle(e.target.value)}
-				/>
-				<input
-					type="text"
-					value={year}
-					placeholder="année"
-					onChange={(e) => setYear(e.target.value)}
-				/>
-				<input
-					type="text"
-					placeholder="producteur"
-					value={director}
-					onChange={(e) => setDirector(e.target.value)}
-				/>
-				<input
-					type="text"
-					placeholder="couleur"
-					value={color}
-					onChange={(e) => setColor(e.target.value)}
-					required
-				/>
-				<input
-					type="number"
-					placeholder="durer"
-					value={duration}
-					onChange={(e) => setDuration(e.target.value)}
-					required
-				/>
-				<button type="submit" onClick={handleReset}>
-					Envoyer
-				</button>
-			</form>
-		</div>
-	);
+  const handleInputChange = (id, property, value) => {
+    setEditedData((prevData) => ({
+      ...prevData,
+      [id]: {
+        ...prevData[id],
+        [property]: value,
+      },
+    }));
+  };
+
+  const handleCancel = (id) => {
+    setEditedData((prevData) => {
+      const updatedData = { ...prevData };
+      delete updatedData[id];
+      return updatedData;
+    });
+  };
+
+  return (
+    <div className="App">
+      {data.map((item) => (
+        <div key={item.id}>
+          {editedData[item.id] ? (
+            <>
+              <input
+                type="text"
+                value={editedData[item.id].title || item.title}
+                onChange={(e) =>
+                  handleInputChange(item.id, "title", e.target.value)
+                }
+              />
+              <input
+                type="text"
+                value={editedData[item.id].year || item.year}
+                onChange={(e) =>
+                  handleInputChange(item.id, "year", e.target.value)
+                }
+              />
+              <input
+                type="text"
+                value={editedData[item.id].director || item.director}
+                onChange={(e) =>
+                  handleInputChange(item.id, "director", e.target.value)
+                }
+              />
+              <button onClick={() => handleSave(item.id)}>Enregistrer</button>
+              <button onClick={() => handleCancel(item.id)}>Annuler</button>
+            </>
+          ) : (
+            <>
+              <p onClick={() => handleEdit(item.id)}>{item.title}</p>
+              <p onClick={() => handleEdit(item.id)}>{item.year}</p>
+              <p onClick={() => handleEdit(item.id)}>{item.director}</p>
+            </>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default App;
